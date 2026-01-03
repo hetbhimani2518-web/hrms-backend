@@ -32,7 +32,7 @@ public class RefreshTokenService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow();
 
-        refreshTokenRepository.deleteByUserId(user.getId());
+        refreshTokenRepository.findByUser(user).ifPresent(refreshTokenRepository::delete);
 
         RefreshToken refreshToken = new RefreshToken();
         refreshToken.setUser(user);

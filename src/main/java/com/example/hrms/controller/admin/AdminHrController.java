@@ -1,0 +1,56 @@
+package com.example.hrms.controller.admin;
+
+import com.example.hrms.dto.hr.HrCreateRequest;
+import com.example.hrms.dto.hr.HrResponse;
+import com.example.hrms.dto.hr.HrUpdateRequest;
+import com.example.hrms.service.HrManagementService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/admin/hr")
+@RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
+public class AdminHrController {
+
+    private final HrManagementService hrManagementService;
+
+    @PostMapping
+    public ResponseEntity<HrResponse> createHr(@RequestBody HrCreateRequest request){
+        HrResponse hrResponse = hrManagementService.createHr(request);
+        return new  ResponseEntity<>(hrResponse, HttpStatus.CREATED);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<HrResponse>> getAllHr(){
+        return ResponseEntity.ok(hrManagementService.getAllHrs());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<HrResponse> getHrById(@PathVariable Long id) {
+        return ResponseEntity.ok(hrManagementService.getHrById(id));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<HrResponse> updateHr(@PathVariable Long id,@RequestBody HrUpdateRequest request) {
+        return ResponseEntity.ok(hrManagementService.updateHr(id, request));
+    }
+
+    @PatchMapping("/{id}/disable")
+    public ResponseEntity<Void> disableHr(@PathVariable Long id) {
+        hrManagementService.disableHr(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteHr(@PathVariable Long id) {
+        hrManagementService.deleteHr(id);
+        return ResponseEntity.noContent().build();
+    }
+
+}
