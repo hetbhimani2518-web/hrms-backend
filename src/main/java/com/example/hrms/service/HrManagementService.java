@@ -29,6 +29,9 @@ public class HrManagementService {
 
     public HrResponse createHr(HrCreateRequest request) {
 
+        System.out.println("-- CREATE HR API HIT --");
+        System.out.println("Email: " + request.getEmail());
+
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email already exists");
         }
@@ -42,6 +45,7 @@ public class HrManagementService {
         user.getRoles().add(hrRole);
 
         user =  userRepository.save(user);
+        System.out.println("-- User saved with ID: " + user.getId() + " --");
 
         HrProfile profile = new HrProfile();
         profile.setUser(user);
@@ -50,64 +54,79 @@ public class HrManagementService {
         profile.setDepartment(request.getDepartment());
         profile.setDesignation(request.getDesignation());
         profile.setJoiningDate(request.getJoiningDate());
-        profile.setEmployeeCode(generateEmployeeCode());
+        profile.setEmployeeCode("HR-" + System.currentTimeMillis());
         profile.setStatus(HrStatus.ACTIVE);
         profile.setCreatedAt(Instant.now());
         profile.setUpdatedAt(Instant.now());
 
-        hrProfileRepository.save(profile);
+//        HrProfile profile = new HrProfile();
+//        profile.setUser(user);
+//        profile.setFullName(request.getFullName());
+//        profile.setPhone(request.getPhone());
+//        profile.setDepartment(request.getDepartment());
+//        profile.setDesignation(request.getDesignation());
+//        profile.setJoiningDate(request.getJoiningDate());
+//        profile.setEmployeeCode(generateEmployeeCode());
+//        profile.setStatus(HrStatus.ACTIVE);
+//        profile.setCreatedAt(Instant.now());
+//        profile.setUpdatedAt(Instant.now());
 
-        return mapToResponse(profile);
+        hrProfileRepository.save(profile);
+        System.out.println("-- HR Profile saved --");
+
+//        return mapToResponse(profile);
+        return null;
     }
 
     @Transactional(readOnly = true)
     public List<HrResponse> getAllHrs() {
-        return hrProfileRepository.findAll().stream().map(this::mapToResponse).collect(Collectors.toList());
+        return hrProfileRepository.findAll().stream().map(this::mapToResponse).toList();
     }
 
-    @Transactional(readOnly = true)
-    public HrResponse getHrById(Long id) {
-        HrProfile profile = hrProfileRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("HR not found"));
-        return mapToResponse(profile);
-    }
-
-    public HrResponse updateHr(Long id, HrUpdateRequest request) {
-
-        HrProfile profile = hrProfileRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("HR not found"));
-
-        profile.setFullName(request.getFullName());
-        profile.setPhone(request.getPhone());
-        profile.setDepartment(request.getDepartment());
-        profile.setDesignation(request.getDesignation());
-        profile.setUpdatedAt(Instant.now());
-
-        return mapToResponse(profile);
-    }
-
-    public void disableHr(Long id) {
-
-        HrProfile profile = hrProfileRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("HR not found"));
-
-        profile.setStatus(HrStatus.DISABLED);
-        profile.getUser().setEnabled(false);
-        profile.setUpdatedAt(Instant.now());
-    }
-
-    public void deleteHr(Long id) {
-
-        HrProfile profile = hrProfileRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("HR not found"));
-
-        hrProfileRepository.delete(profile);
-        userRepository.delete(profile.getUser());
-    }
-
-    private String generateEmployeeCode() {
-        return "HR-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
-    }
+//
+//    @Transactional(readOnly = true)
+//    public HrResponse getHrById(Long id) {
+//        HrProfile profile = hrProfileRepository.findById(id)
+//                .orElseThrow(() -> new RuntimeException("HR not found"));
+//        return mapToResponse(profile);
+//    }
+//
+//    public HrResponse updateHr(Long id, HrUpdateRequest request) {
+//
+//        HrProfile profile = hrProfileRepository.findById(id)
+//                .orElseThrow(() -> new RuntimeException("HR not found"));
+//
+//        profile.setFullName(request.getFullName());
+//        profile.setPhone(request.getPhone());
+//        profile.setDepartment(request.getDepartment());
+//        profile.setDesignation(request.getDesignation());
+//        profile.setUpdatedAt(Instant.now());
+//
+//        return mapToResponse(profile);
+//    }
+//
+//    public void disableHr(Long id) {
+//
+//        HrProfile profile = hrProfileRepository.findById(id)
+//                .orElseThrow(() -> new RuntimeException("HR not found"));
+//
+//        profile.setStatus(HrStatus.DISABLED);
+//        profile.getUser().setEnabled(false);
+//        profile.setUpdatedAt(Instant.now());
+//    }
+//
+//    public void deleteHr(Long id) {
+//
+//        HrProfile profile = hrProfileRepository.findById(id)
+//                .orElseThrow(() -> new RuntimeException("HR not found"));
+//
+//        hrProfileRepository.delete(profile);
+//        userRepository.delete(profile.getUser());
+//    }
+//
+//    private String generateEmployeeCode() {
+//        return "HR-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+//    }
 
     private HrResponse mapToResponse(HrProfile profile) {
         HrResponse response = new HrResponse();

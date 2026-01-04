@@ -18,11 +18,12 @@ public class RefreshTokenService {
     private final UserRepository userRepository;
 
     private static final long REFRESH_TOKEN_EXPIRATION =
-            7 * 24 * 60 * 60 * 1000;
+            7 * 24 * 60 * 60 * 1000; // 7 days
 
     public RefreshTokenService(
             RefreshTokenRepository refreshTokenRepository,
-            UserRepository userRepository) {
+            UserRepository userRepository
+    ) {
         this.refreshTokenRepository = refreshTokenRepository;
         this.userRepository = userRepository;
     }
@@ -30,11 +31,13 @@ public class RefreshTokenService {
     public RefreshToken createRefreshToken(String email) {
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow();
+                .orElseThrow(() ->
+                        new RuntimeException("User not found"));
 
-        refreshTokenRepository.findByUser(user).ifPresent(refreshTokenRepository::delete);
+        RefreshToken refreshToken = refreshTokenRepository
+                .findByUser(user)
+                .orElse(new RefreshToken());
 
-        RefreshToken refreshToken = new RefreshToken();
         refreshToken.setUser(user);
         refreshToken.setToken(UUID.randomUUID().toString());
         refreshToken.setExpiryDate(
@@ -57,5 +60,9 @@ public class RefreshTokenService {
         }
 
         return refreshToken;
+    }
+
+    public void deleteByUser(User user) {
+        refreshTokenRepository.deleteByUser(user);
     }
 }
