@@ -1,120 +1,47 @@
 package com.example.hrms.controller;
 
-import com.example.hrms.dto.LoginRequest;
-import com.example.hrms.dto.LoginResponse;
-import com.example.hrms.dto.LogoutRequest;
-import com.example.hrms.dto.RefreshTokenRequest;
-import com.example.hrms.entity.RefreshToken;
-import com.example.hrms.entity.Role;
+import com.example.hrms.common.ApiResponse;
+import com.example.hrms.dto.request.LoginRequestDTO;
+import com.example.hrms.dto.request.LogoutRequestDTO;
+import com.example.hrms.dto.response.LoginResponseDTO;
 import com.example.hrms.entity.User;
-import com.example.hrms.repository.RefreshTokenRepository;
-import com.example.hrms.security.JwtService;
-import com.example.hrms.service.RefreshTokenService;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
+import com.example.hrms.repository.UserRepository;
+import com.example.hrms.service.AuthService;
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.time.LocalDateTime;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 public class AuthController {
 
-    private final AuthenticationManager authenticationManager;
-    private final JwtService jwtService;
-    private final RefreshTokenService refreshTokenService;
-    private final RefreshTokenRepository refreshTokenRepository;
+    private final AuthService authService;
+    private final UserRepository userRepository;
 
-    public AuthController(
-            AuthenticationManager authenticationManager,
-            JwtService jwtService,
-            RefreshTokenService refreshTokenService,
-            RefreshTokenRepository refreshTokenRepository) {
-        this.authenticationManager = authenticationManager;
-        this.jwtService = jwtService;
-        this.refreshTokenService = refreshTokenService;
-        this.refreshTokenRepository = refreshTokenRepository;
+    public AuthController(AuthService authService,
+                          UserRepository userRepository) {
+        this.authService = authService;
+        this.userRepository = userRepository;
     }
 
     @PostMapping("/login")
-    public LoginResponse login(@RequestBody LoginRequest request) {
+    public ResponseEntity<ApiResponse<LoginResponseDTO>> login(
+            @Valid @RequestBody LoginRequestDTO request) {
 
-        Authentication authentication =
-                authenticationManager.authenticate(
-                        new UsernamePasswordAuthenticationToken(
-                                request.getEmail(),
-                                request.getPassword()
-                        )
-                );
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
 
-        String accessToken =
-                jwtService.generateToken(
-                        (org.springframework.security.core.userdetails.User)
-                                authentication.getPrincipal()
-                );
+        LoginResponseDTO response = authService.login(request, user);
 
-        String refreshToken =
-                refreshTokenService
-                        .createRefreshToken(request.getEmail())
-                        .getToken();
-
-        List<String> roles =
-                authentication.getAuthorities()
-                        .stream()
-                        .map(GrantedAuthority::getAuthority)
-                        .filter(role -> role.startsWith("ROLE_"))
-                        .toList();
-
-        return new LoginResponse(
-                accessToken,
-                refreshToken,
-                roles
+        return ResponseEntity.ok(
+                ApiResponse.<LoginResponseDTO>builder()
+                        .success(true)
+                        .message("Login successful")
+                        .data(response)
+                        .timestamp(LocalDateTime.now())
+                        .build()
         );
     }
-
-    @PostMapping("/refresh")
-    public LoginResponse refreshToken(
-            @RequestBody RefreshTokenRequest request) {
-
-        RefreshToken refreshToken =
-                refreshTokenService.verifyRefreshToken(
-                        request.getRefreshToken());
-
-        User user = refreshToken.getUser();
-
-        org.springframework.security.core.userdetails.User userDetails =
-                new org.springframework.security.core.userdetails.User(
-                        user.getEmail(),
-                        user.getPassword(),
-                        user.getRoles().stream()
-                                .map(role ->
-                                        new org.springframework.security.core.authority
-                                                .SimpleGrantedAuthority(
-                                                role.getRoleName()))
-                                .toList()
-                );
-
-        String newAccessToken = jwtService.generateToken(userDetails);
-
-        return new LoginResponse(
-                newAccessToken,
-                refreshToken.getToken(),
-                user.getRoles().stream()
-                        .map(Role::getRoleName)
-                        .toList()
-        );
-    }
-
-    @PostMapping("/logout")
-    public String logout(@RequestBody LogoutRequest request) {
-
-        refreshTokenRepository
-                .findByToken(request.getRefreshToken())
-                .ifPresent(refreshTokenRepository::delete);
-
-        return "Logged out successfully";
-    }
-
 }

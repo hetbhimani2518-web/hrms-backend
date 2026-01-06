@@ -3,66 +3,47 @@ package com.example.hrms.service;
 import com.example.hrms.entity.RefreshToken;
 import com.example.hrms.entity.User;
 import com.example.hrms.repository.RefreshTokenRepository;
-import com.example.hrms.repository.UserRepository;
-import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.UUID;
 
 @Service
-@Transactional
 public class RefreshTokenService {
 
-    private final RefreshTokenRepository refreshTokenRepository;
-    private final UserRepository userRepository;
+    private final RefreshTokenRepository repository;
 
-    private static final long REFRESH_TOKEN_EXPIRATION =
-            7 * 24 * 60 * 60 * 1000; // 7 days
-
-    public RefreshTokenService(
-            RefreshTokenRepository refreshTokenRepository,
-            UserRepository userRepository
-    ) {
-        this.refreshTokenRepository = refreshTokenRepository;
-        this.userRepository = userRepository;
+    public RefreshTokenService(RefreshTokenRepository repository) {
+        this.repository = repository;
     }
 
-    public RefreshToken createRefreshToken(String email) {
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() ->
-                        new RuntimeException("User not found"));
-
-        RefreshToken refreshToken = refreshTokenRepository
-                .findByUser(user)
-                .orElse(new RefreshToken());
-
-        refreshToken.setUser(user);
-        refreshToken.setToken(UUID.randomUUID().toString());
-        refreshToken.setExpiryDate(
-                Instant.now().plusMillis(REFRESH_TOKEN_EXPIRATION)
-        );
-
-        return refreshTokenRepository.save(refreshToken);
+    public RefreshToken createRefreshToken(User user) {
+        RefreshToken token = new RefreshToken();
+        token.setUser(user);
+        token.setToken(UUID.randomUUID().toString());
+        token.setExpiryDate(Instant.now().plusSeconds(7 * 24 * 60 * 60));
+        return repository.save(token);
     }
 
-    public RefreshToken verifyRefreshToken(String token) {
-
-        RefreshToken refreshToken = refreshTokenRepository
-                .findByToken(token)
-                .orElseThrow(() ->
-                        new RuntimeException("Invalid refresh token"));
+    public RefreshToken validateRefreshToken(String token) {
+        RefreshToken refreshToken = repository.findByToken(token)
+                .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
 
         if (refreshToken.getExpiryDate().isBefore(Instant.now())) {
-            refreshTokenRepository.delete(refreshToken);
+            repository.delete(refreshToken);
             throw new RuntimeException("Refresh token expired");
         }
-
         return refreshToken;
     }
 
-    public void deleteByUser(User user) {
-        refreshTokenRepository.deleteByUser(user);
+    public void deleteByToken(String token) {
+        RefreshToken refreshToken = repository.findByToken(token)
+                .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
+        repository.delete(refreshToken);
     }
+
+    public void logoutAll(User user) {
+        repository.deleteByUser(user);
+    }
+
 }
