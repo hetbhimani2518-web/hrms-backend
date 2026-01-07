@@ -10,57 +10,49 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
-import java.util.Set;
 
 @Configuration
-public class DataInitializer implements CommandLineRunner {
+public class DataInitializer {
 
-    private final RoleRepository roleRepository;
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+    @Bean
+    CommandLineRunner initRoles(RoleRepository roleRepository) {
+        return args -> {
+            List<String> roles = List.of(
+                    "ROLE_ADMIN",
+                    "ROLE_HR",
+                    "ROLE_MANAGER",
+                    "ROLE_EMPLOYEE"
+            );
 
-    public DataInitializer(RoleRepository roleRepository,
-                           UserRepository userRepository,
-                           PasswordEncoder passwordEncoder) {
-        this.roleRepository = roleRepository;
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
+            for(String roleName : roles) {
+                roleRepository.findByRoleName(roleName)
+                        .orElseGet(() -> {
+                            Role role =  new Role();
+                            role.setRoleName(roleName);
+                            return roleRepository.save(role);
+                        });
+            }
+        };
     }
 
-    @Override
-    public void run(String... args) {
+    @Bean
+    CommandLineRunner initAdmin(
+            RoleRepository roleRepository,
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder) {
 
-        createRoleIfNotExists("ADMIN");
-        createRoleIfNotExists("HR");
-        createRoleIfNotExists("MANAGER");
-        createRoleIfNotExists("EMPLOYEE");
+        return args -> {
+            if(userRepository.findByEmail("admin@hrms.com").isEmpty()){
+                Role adminRole = roleRepository.findByRoleName("ROLE_ADMIN").orElseThrow();
 
-        createAdminIfNotExists();
-    }
+                User admin = new  User();
+                admin.setEmail("admin@hrms.com");
+                admin.setPassword(passwordEncoder.encode("Admin@123"));
+                admin.getRoles().add(adminRole);
 
-    private void createRoleIfNotExists(String roleName) {
-        roleRepository.findByRoleName(roleName)
-                .orElseGet(() -> {
-                    Role role = new Role();
-                    role.setRoleName(roleName);
-                    return roleRepository.save(role);
-                });
-    }
+                userRepository.save(admin);
 
-    private void createAdminIfNotExists() {
-        if (userRepository.findByEmail("admin@gmail.com").isPresent()) {
-            return;
-        }
-
-        Role adminRole = roleRepository.findByRoleName("ADMIN")
-                .orElseThrow(() -> new RuntimeException("ADMIN role missing"));
-
-        User admin = new User();
-        admin.setEmail("admin@gmail.com");
-        admin.setPassword(passwordEncoder.encode("admin123"));
-        admin.setEnabled(true);
-        admin.setRoles(Set.of(adminRole));
-
-        userRepository.save(admin);
+            }
+        };
     }
 }

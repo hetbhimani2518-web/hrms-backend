@@ -2,7 +2,6 @@ package com.example.hrms.service;
 
 import com.example.hrms.dto.hr.HrCreateRequest;
 import com.example.hrms.dto.hr.HrResponse;
-import com.example.hrms.dto.hr.HrUpdateRequest;
 import com.example.hrms.entity.*;
 import com.example.hrms.repository.HrProfileRepository;
 import com.example.hrms.repository.RoleRepository;
@@ -14,8 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
