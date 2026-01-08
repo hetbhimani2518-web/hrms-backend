@@ -15,7 +15,7 @@ import java.util.List;
 public class DataInitializer {
 
     @Bean
-    CommandLineRunner initRoles(RoleRepository roleRepository) {
+    CommandLineRunner initData(RoleRepository roleRepository,UserRepository userRepository,PasswordEncoder passwordEncoder) {
         return args -> {
             List<String> roles = List.of(
                     "ROLE_ADMIN",
@@ -24,34 +24,30 @@ public class DataInitializer {
                     "ROLE_EMPLOYEE"
             );
 
-            for(String roleName : roles) {
+            for (String roleName : roles) {
                 roleRepository.findByRoleName(roleName)
                         .orElseGet(() -> {
-                            Role role =  new Role();
+                            Role role = new Role();
                             role.setRoleName(roleName);
                             return roleRepository.save(role);
                         });
             }
-        };
-    }
 
-    @Bean
-    CommandLineRunner initAdmin(
-            RoleRepository roleRepository,
-            UserRepository userRepository,
-            PasswordEncoder passwordEncoder) {
+            if (userRepository.findByEmail("admin@hrms.com").isEmpty()) {
 
-        return args -> {
-            if(userRepository.findByEmail("admin@hrms.com").isEmpty()){
-                Role adminRole = roleRepository.findByRoleName("ROLE_ADMIN").orElseThrow();
+                Role adminRole = roleRepository.findByRoleName("ROLE_ADMIN")
+                        .orElseThrow(() ->
+                                new IllegalStateException("ROLE_ADMIN not found after initialization"));
 
-                User admin = new  User();
+                User admin = new User();
                 admin.setEmail("admin@hrms.com");
                 admin.setPassword(passwordEncoder.encode("Admin@123"));
+                admin.setEnabled(true);
                 admin.getRoles().add(adminRole);
 
                 userRepository.save(admin);
 
+                System.out.println("Default Admin user created");
             }
         };
     }

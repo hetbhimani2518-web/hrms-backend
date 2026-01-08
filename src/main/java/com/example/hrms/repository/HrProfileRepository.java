@@ -14,4 +14,6 @@ public interface HrProfileRepository extends JpaRepository<HrProfile, Long> {
     long countByStatus(HrStatus status);
 
     Optional<HrProfile> findByEmployeeCode(String employeeCode);
+
+    Optional<HrProfile> findByIdAndStatus(Long id, HrStatus status);
 }

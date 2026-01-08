@@ -2,6 +2,7 @@ package com.example.hrms.service;
 
 import com.example.hrms.dto.hr.HrCreateRequest;
 import com.example.hrms.dto.hr.HrResponse;
+import com.example.hrms.dto.hr.HrUpdateRequest;
 import com.example.hrms.entity.*;
 import com.example.hrms.repository.HrProfileRepository;
 import com.example.hrms.repository.RoleRepository;
@@ -71,8 +72,7 @@ public class HrManagementService {
         hrProfileRepository.save(profile);
         System.out.println("-- HR Profile saved --");
 
-//        return mapToResponse(profile);
-        return null;
+        return mapToResponse(profile);
     }
 
     @Transactional(readOnly = true)
@@ -88,29 +88,43 @@ public class HrManagementService {
 //        return mapToResponse(profile);
 //    }
 //
-//    public HrResponse updateHr(Long id, HrUpdateRequest request) {
+
+    public HrResponse updateHr(Long hrId, HrUpdateRequest request) {
+
+        HrProfile profile = hrProfileRepository.findById(hrId)
+                .orElseThrow(() -> new RuntimeException("HR not found"));
+
+        if (profile.getStatus() == HrStatus.INACTIVE) {
+            throw new RuntimeException("Cannot update inactive HR");
+        }
+
+        profile.setFullName(request.getFullName());
+        profile.setPhone(request.getPhone());
+        profile.setDepartment(request.getDepartment());
+        profile.setDesignation(request.getDesignation());
+        profile.setUpdatedAt(Instant.now());
+
+//        hrProfileRepository.save(profile);
+
+        return mapToResponse(profile);
+    }
+
+    public void disableHr(Long hrId) {
+
+        HrProfile profile = hrProfileRepository.findById(hrId)
+                .orElseThrow(() -> new RuntimeException("HR not found"));
+
+        profile.setStatus(HrStatus.DISABLED);
+        profile.setUpdatedAt(Instant.now());
+
+//        User user = profile.getUser();
+//        user.setEnabled(false);
 //
-//        HrProfile profile = hrProfileRepository.findById(id)
-//                .orElseThrow(() -> new RuntimeException("HR not found"));
-//
-//        profile.setFullName(request.getFullName());
-//        profile.setPhone(request.getPhone());
-//        profile.setDepartment(request.getDepartment());
-//        profile.setDesignation(request.getDesignation());
-//        profile.setUpdatedAt(Instant.now());
-//
-//        return mapToResponse(profile);
-//    }
-//
-//    public void disableHr(Long id) {
-//
-//        HrProfile profile = hrProfileRepository.findById(id)
-//                .orElseThrow(() -> new RuntimeException("HR not found"));
-//
-//        profile.setStatus(HrStatus.DISABLED);
-//        profile.getUser().setEnabled(false);
-//        profile.setUpdatedAt(Instant.now());
-//    }
+//        hrProfileRepository.save(profile);
+
+        profile.getUser().setEnabled(false);
+    }
+
 //
 //    public void deleteHr(Long id) {
 //
