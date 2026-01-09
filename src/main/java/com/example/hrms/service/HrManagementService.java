@@ -80,14 +80,12 @@ public class HrManagementService {
         return hrProfileRepository.findAll().stream().map(this::mapToResponse).toList();
     }
 
-//
-//    @Transactional(readOnly = true)
-//    public HrResponse getHrById(Long id) {
-//        HrProfile profile = hrProfileRepository.findById(id)
-//                .orElseThrow(() -> new RuntimeException("HR not found"));
-//        return mapToResponse(profile);
-//    }
-//
+    @Transactional(readOnly = true)
+    public HrResponse getHrById(Long id) {
+        HrProfile profile = hrProfileRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("HR not found"));
+        return mapToResponse(profile);
+    }
 
     public HrResponse updateHr(Long hrId, HrUpdateRequest request) {
 
@@ -104,8 +102,7 @@ public class HrManagementService {
         profile.setDesignation(request.getDesignation());
         profile.setUpdatedAt(Instant.now());
 
-//        hrProfileRepository.save(profile);
-
+        hrProfileRepository.save(profile);
         return mapToResponse(profile);
     }
 
@@ -117,23 +114,27 @@ public class HrManagementService {
         profile.setStatus(HrStatus.DISABLED);
         profile.setUpdatedAt(Instant.now());
 
-//        User user = profile.getUser();
-//        user.setEnabled(false);
-//
-//        hrProfileRepository.save(profile);
+        User user = profile.getUser();
+        user.setEnabled(false);
 
-        profile.getUser().setEnabled(false);
+        hrProfileRepository.save(profile);
+        userRepository.save(user);
+
+//        profile.getUser().setEnabled(false);
     }
 
-//
-//    public void deleteHr(Long id) {
-//
-//        HrProfile profile = hrProfileRepository.findById(id)
-//                .orElseThrow(() -> new RuntimeException("HR not found"));
-//
+    public void deleteHr(Long id) {
+
+        HrProfile profile = hrProfileRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("HR not found"));
+
+        User user = profile.getUser();
+        hrProfileRepository.delete(profile);
+        userRepository.delete(user);
+
 //        hrProfileRepository.delete(profile);
 //        userRepository.delete(profile.getUser());
-//    }
+    }
 //
 //    private String generateEmployeeCode() {
 //        return "HR-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();

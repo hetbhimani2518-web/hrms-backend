@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/admin/hr")
+@RequestMapping("/api/admin/hr")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminHrController {
@@ -32,30 +32,26 @@ public class AdminHrController {
         return ResponseEntity.ok(hrManagementService.getAllHrs());
     }
 
-//
-//    @GetMapping("/{id}")
-//    public ResponseEntity<HrResponse> getHrById(@PathVariable Long id) {
-//        return ResponseEntity.ok(hrManagementService.getHrById(id));
-//    }
-//
+    @GetMapping("/{id}")
+    public ResponseEntity<HrResponse> getHrById(@PathVariable Long id) {
+        return ResponseEntity.ok(hrManagementService.getHrById(id));
+    }
+
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<HrResponse> updateHr(@PathVariable Long id,@RequestBody HrUpdateRequest request) {
         return ResponseEntity.ok(hrManagementService.updateHr(id, request));
     }
 
-
     @PatchMapping("/{id}/disable")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> disableHr(@PathVariable Long id) {
         hrManagementService.disableHr(id);
         return ResponseEntity.noContent().build();
     }
-//
-//    @DeleteMapping("/{id}")
-//    public ResponseEntity<Void> deleteHr(@PathVariable Long id) {
-//        hrManagementService.deleteHr(id);
-//        return ResponseEntity.noContent().build();
-//    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteHr(@PathVariable Long id) {
+        hrManagementService.deleteHr(id);
+        return ResponseEntity.noContent().build();
+    }
 
 }
