@@ -20,7 +20,7 @@ public class AdminHrController {
 
     private final HrManagementService hrManagementService;
 
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<HrResponse> createHr(@RequestBody HrCreateRequest request) {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -32,12 +32,12 @@ public class AdminHrController {
         return ResponseEntity.ok(hrManagementService.getAllHrs());
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/get/{id}")
     public ResponseEntity<HrResponse> getHrById(@PathVariable Long id) {
         return ResponseEntity.ok(hrManagementService.getHrById(id));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/edit/{id}")
     public ResponseEntity<HrResponse> updateHr(@PathVariable Long id,@RequestBody HrUpdateRequest request) {
         return ResponseEntity.ok(hrManagementService.updateHr(id, request));
     }
@@ -48,7 +48,7 @@ public class AdminHrController {
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deleteHr(@PathVariable Long id) {
         hrManagementService.deleteHr(id);
         return ResponseEntity.noContent().build();

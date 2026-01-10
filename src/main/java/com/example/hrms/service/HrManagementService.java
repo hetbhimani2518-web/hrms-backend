@@ -96,6 +96,7 @@ public class HrManagementService {
             throw new RuntimeException("Cannot update inactive HR");
         }
 
+        profile.getUser().setEmail(request.getEmail());
         profile.setFullName(request.getFullName());
         profile.setPhone(request.getPhone());
         profile.setDepartment(request.getDepartment());
