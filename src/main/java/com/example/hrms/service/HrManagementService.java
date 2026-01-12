@@ -30,9 +30,7 @@ public class HrManagementService {
         System.out.println("-- CREATE HR API HIT --");
         System.out.println("Email: " + request.getEmail());
 
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already exists");
-        }
+        if (userRepository.existsByEmail(request.getEmail())) throw new RuntimeException("Email already exists");
 
         Role hrRole = roleRepository.findByRoleName("ROLE_HR").orElseThrow(() -> new RuntimeException("ROLE_HR not found"));
 
