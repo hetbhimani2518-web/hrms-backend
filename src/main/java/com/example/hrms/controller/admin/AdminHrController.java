@@ -4,6 +4,7 @@ import com.example.hrms.dto.hr.HrCreateRequest;
 import com.example.hrms.dto.hr.HrResponse;
 import com.example.hrms.dto.hr.HrUpdateRequest;
 import com.example.hrms.service.HrManagementService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +22,7 @@ public class AdminHrController {
     private final HrManagementService hrManagementService;
 
     @PostMapping("/create")
-    public ResponseEntity<HrResponse> createHr(@RequestBody HrCreateRequest request) {
+    public ResponseEntity<HrResponse> createHr(@Valid @RequestBody HrCreateRequest request) {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(hrManagementService.createHr(request));
@@ -38,7 +39,7 @@ public class AdminHrController {
     }
 
     @PutMapping("/edit/{id}")
-    public ResponseEntity<HrResponse> updateHr(@PathVariable Long id,@RequestBody HrUpdateRequest request) {
+    public ResponseEntity<HrResponse> updateHr(@PathVariable Long id,@Valid @RequestBody HrUpdateRequest request) {
         return ResponseEntity.ok(hrManagementService.updateHr(id, request));
     }
 

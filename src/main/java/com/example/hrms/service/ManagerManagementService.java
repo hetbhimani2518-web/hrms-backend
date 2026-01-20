@@ -27,7 +27,7 @@ public class ManagerManagementService {
 
     public ManagerResponse createManager(ManagerCreateRequest request) {
 
-        System.out.println("-- CREATE HR API HIT --");
+        System.out.println("-- CREATE MANAGER API HIT --");
         System.out.println("Email: " + request.getEmail());
 
         if (userRepository.existsByEmail(request.getEmail())) throw new RuntimeException("Email already exists");

@@ -43,7 +43,7 @@ public class AdminManagerController {
     }
 
     @PatchMapping("/{id}/disable")
-    public ResponseEntity<Void> disableHr(@PathVariable Long id) {
+    public ResponseEntity<Void> disableManager(@PathVariable Long id) {
         managerManagementService.disableManager(id);
         return ResponseEntity.noContent().build();
     }

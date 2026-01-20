@@ -36,10 +36,22 @@ public class HrProfile {
     private LocalDate joiningDate;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private HrStatus status;
 
     private Instant createdAt;
 
     private Instant updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = Instant.now();
+        updatedAt = Instant.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = Instant.now();
+    }
 
 }

@@ -47,7 +47,11 @@ public class HrManagementService {
         profile.setUser(user);
         profile.setFullName(request.getFullName());
         profile.setPhone(request.getPhone());
-        profile.setDepartment(request.getDepartment());
+        profile.setDepartment(
+                request.getDepartment() == null || request.getDepartment().isBlank()
+                        ? "Human Resource"
+                        : request.getDepartment()
+        );
         profile.setDesignation(request.getDesignation());
         profile.setJoiningDate(request.getJoiningDate());
         profile.setEmployeeCode("HR-" + System.currentTimeMillis());
@@ -89,6 +93,11 @@ public class HrManagementService {
 
         HrProfile profile = hrProfileRepository.findById(hrId)
                 .orElseThrow(() -> new RuntimeException("HR not found"));
+
+        if (!profile.getUser().getEmail().equals(request.getEmail())
+                && userRepository.existsByEmail(request.getEmail())) {
+            throw new RuntimeException("Email already exists");
+        }
 
         if (profile.getStatus() == HrStatus.INACTIVE) {
             throw new RuntimeException("Cannot update inactive HR");
@@ -150,7 +159,7 @@ public class HrManagementService {
         response.setDesignation(profile.getDesignation());
         response.setEmployeeCode(profile.getEmployeeCode());
         response.setJoiningDate(profile.getJoiningDate());
-        response.setStatus(profile.getStatus().name());
+        response.setStatus(profile.getStatus().toString());
         return response;
     }
 }

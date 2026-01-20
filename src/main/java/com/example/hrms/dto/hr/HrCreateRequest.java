@@ -2,6 +2,8 @@ package com.example.hrms.dto.hr;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,10 +18,14 @@ public class HrCreateRequest {
     private String email;
 
     @NotBlank
+    @Size(min=6 , max=20)
     private String password;
 
     @NotBlank
+    @Size(min=3 , max=50)
     private String fullName;
+
+    @Pattern(regexp = "^[0-9]{10}$", message = "Invalid phone number")
     private String phone;
     private String department;
     private String designation;
